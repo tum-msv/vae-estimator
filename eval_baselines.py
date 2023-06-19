@@ -12,19 +12,18 @@ from models import VAECircCovReal as VAECircCovNoisy
 
 
 # set simulation parameters
-ant = '128rx'
-path = './models/'
-path_t = 'C:\\Users\\MichaelBaur\\LRZ Sync+Share\\Cloud\\Promotion\\code\\vaes\\data\\3GPP\\' + ant + '\\'
+ant = '32rx'  # 32rx or 128rx
+path = './models/'  # path to the model files
 data = 2  # 1=Quadriga, 2=3GPP
-paths = '1'  # for 3GPP data
-losmixed = 'mixed'
+paths = '3'  # for 3GPP data, represents number of propagation clusters
+losmixed = 'mixed'  # use 'los' (LOS channels) or 'mixed' (mixed LOS/NLOS channels) if data==1 (Quadriga)
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
-snr_lim = [-10, 30]
-snr_step = 10
+snr_lim = [-10, 30]  # upper and lower SNR bound, models are trained for the SNR range [-10, 30] dB
+snr_step = 20  # step for the SNR range
 
 
 # load training data
@@ -47,7 +46,7 @@ C_global = 1 / len(h_train) * h_train.T @ h_train.conj()
 
 # define genie-cov estimator if 3GPP data is used
 if data == 2:
-    t = np.load(path_t + 'scm3gpp_' + paths + '-path-cov-test.npy')
+    t = np.load('./data/3GPP/' + ant + '/scm3gpp_' + paths + '-path-cov-test.npy')
     cov = [sp.linalg.toeplitz(t[i].conj()) for i in range(len(t))]
     cov = torch.tensor(np.array(cov), device=device)
     mu = torch.zeros((len(cov), cov.shape[-1]), device=device).to(torch.cfloat)

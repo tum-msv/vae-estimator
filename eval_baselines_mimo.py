@@ -12,18 +12,17 @@ from models import VAECircCovMIMOReal as VAECircCovMIMONoisy
 
 
 # set simulation parameters
-ant = '32rx4tx'
-path = './models/'
-path_t = 'C:\\Users\\MichaelBaur\\LRZ Sync+Share\\Cloud\\Promotion\\code\\vaes\\data\\3GPP_mimo\\' + ant + '\\'
+ant = '32rx4tx'  # only 32rx4tx is available
+path = './models/'  # path to the model files
 data = 2  # 1=Quadriga, 2=3GPP
-paths = '3'  # for 3GPP data
+paths = '3'  # for 3GPP data, represents number of propagation clusters
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
-snr_lim = [-10, 30]
-snr_step = 20
+snr_lim = [-10, 30]  # upper and lower SNR bound, models are trained for the SNR range [-10, 30] dB
+snr_step = 20  # step for the SNR range
 
 
 # load training data
@@ -49,8 +48,8 @@ A_tensor = torch.tensor(A, device=device).to(torch.cfloat)
 
 # define genie-cov estimator if 3GPP data is used
 if data == 2:
-    t_BS = np.load(path_t + 'scm3gpp_' + paths + '-path-cov-bs-test.npy')
-    t_MS = np.load(path_t + 'scm3gpp_' + paths + '-path-cov-ms-test.npy')
+    t_BS = np.load('./data/3GPP_mimo/' + ant + '/scm3gpp_' + paths + '-path-cov-bs-test.npy')
+    t_MS = np.load('./data/3GPP_mimo/' + ant + '/scm3gpp_' + paths + '-path-cov-ms-test.npy')
     cov = [np.kron(sp.linalg.toeplitz(t_MS[i]), sp.linalg.toeplitz(t_BS[i])) for i in range(len(t_BS))]
     cov = torch.tensor(np.array(cov), device=device)
     mu = torch.zeros((len(cov), cov.shape[-1]), device=device).to(torch.cfloat)
@@ -58,7 +57,7 @@ if data == 2:
 
 # define genie VAE
 if data == 1:
-    cf_name = path + 'config-vae_circ_mimo_genie-quadriga-' + losmixed + '-' + ant + '.json'
+    cf_name = path + 'config-vae_circ_mimo_genie-quadriga-mixed-' + ant + '.json'
 else:
     cf_name = path + 'config-vae_circ_mimo_genie-3gpp-' + ant + '-' + paths + 'p.json'
 with open(cf_name, "r") as f:
@@ -75,7 +74,7 @@ vae_genie = VAECircCovMIMO(in_channels=2, stride=cf['st'], kernel_szs=kernel_szs
                            hidden_dims=hidden_dims, input_size=input_size, act=act, device=device, lambda_z=0.1,
                            cond_as_input=0, input_dim=2).eval()
 if data == 1:
-    model_name = path + 'best-vae_circ_mimo-quad_mimo-genie-quadriga-' + losmixed + '-' + ant + '.pt'
+    model_name = path + 'best-vae_circ_mimo-quad_mimo-genie-quadriga-mixed-' + ant + '.pt'
     vae_genie.load_state_dict(torch.load(model_name, map_location=device))
 elif data == 2:
     model_name = path + 'best-vae_circ_mimo-3GPP_MIMO-genie-3gpp-' + ant + '-' + paths + 'p.pt'
@@ -88,7 +87,7 @@ vae_noisy = VAECircCovMIMO(in_channels=2, stride=cf['st'], kernel_szs=kernel_szs
                            hidden_dims=hidden_dims, input_size=input_size, act=act, device=device,
                            lambda_z=0.1, cond_as_input=1, input_dim=2).eval()
 if data == 1:
-    model_name = path + 'best-vae_circ_mimo-quad_mimo-noisy-quadriga-' + losmixed + '-' + ant + '.pt'
+    model_name = path + 'best-vae_circ_mimo-quad_mimo-noisy-quadriga-mixed-' + ant + '.pt'
     vae_noisy.load_state_dict(torch.load(model_name, map_location=device))
 elif data == 2:
     model_name = path + 'best-vae_circ_mimo-3GPP_MIMO-noisy-3gpp-' + ant + '-' + paths + 'p.pt'
@@ -101,7 +100,7 @@ vae_real = VAECircCovMIMONoisy(in_channels=2, stride=cf['st'], kernel_szs=kernel
                                hidden_dims=hidden_dims, input_size=input_size, act=act, device=device, lambda_z=0.1,
                                input_dim=2).eval()
 if data == 1:
-    model_name = path + 'best-vae_circ_noisy_mimo-quad_mimo-real-quadriga-' + losmixed + '-' + ant + '.pt'
+    model_name = path + 'best-vae_circ_noisy_mimo-quad_mimo-real-quadriga-mixed-' + ant + '.pt'
     vae_real.load_state_dict(torch.load(model_name, map_location=device))
 elif data == 2:
     model_name = path + 'best-vae_circ_noisy_mimo-3GPP_MIMO-real-3gpp-' + ant + '-' + paths + 'p.pt'

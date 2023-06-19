@@ -12,13 +12,13 @@ from models import VAECircCovReal as VAECircCovNoisy
 
 # set simulation parameters
 parser = argparse.ArgumentParser()
-snr = 10
+snr = 20  # SNR for the simulation, choose anything between -10 and 30 dB
 samples_max = 4  # power of 2 samples to consider at max.
-ant = '32rx'
-data = 2
-paths = '3'
-losmixed = 'los'
-mu_first = 0
+ant = '128rx'  # 32rx or 128rx
+data = 1  # 1=Quadriga, 2=3GPP
+paths = '3'  # for 3GPP data, represents number of propagation clusters
+losmixed = 'mixed'  # use 'los' (LOS channels) or 'mixed' (mixed LOS/NLOS channels) if data==1 (Quadriga)
+mu_first = 1  # use latent mean vector as first MC sample
 path = './models/'
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
