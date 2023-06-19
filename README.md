@@ -1,6 +1,6 @@
 # MMSE Channel Estimation Leveraging Generative Modeling
 
-This is the simulation code to the article
+This is the simulation code for the article
 
 M. Baur, B. Fesl, and W. Utschick, "MMSE Channel Estimation Leveraging Generative Modeling," arXiv preprint.
 
@@ -12,11 +12,14 @@ Please download the data under this [link](https://syncandshare.lrz.de/getlink/f
 The executable files for reproducing the paper results are `eval_baselines.py`, `eval_baselines_mimo.py`, and `eval_baselines_samples.py`. The remaining files contain auxiliary functions and classes. The folder `models` contains the pre-trained model weights with corresponding config files.
 
 ## Implementation Notes
-This code is written in _Python_. It uses the deep learning library _PyTorch_, along with _numpy_, _scipy_, _matplotlib_, and _json_. The code was test with the versions as visisble in the requirements file.
+This code is written in _Python_. It uses the deep learning library _PyTorch_, along with _numpy_, _scipy_, _matplotlib_, and _json_. The code was tested with the versions visible in the requirements file.
 
 ## Instructions
 Run `eval_baselines.py` to reproduce the SIMO results from the paper. To this end, adapt the simulation parameters at the beginning of the file to select the desired scenario. Models are only available for the scenarios from the paper. Other scenario parameters will result in an error message.
+
 Proceed analogously with `eval_baselines_mimo.py`, where the results for the MIMO signal model can be reproduced.
+
+In `eval_baselines_samples.py`, the results for drawing different amounts of samples in the latent space can be investigated. Here, it is possible to select any SIMO simulation scenario from the paper and an SNR value between -10 and 30 dB to produce estimation results.
 
 ## License
 This code is licensed under 3-clause BSD License:
