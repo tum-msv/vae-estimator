@@ -17,14 +17,13 @@ path = './models/'
 path_t = 'C:\\Users\\MichaelBaur\\LRZ Sync+Share\\Cloud\\Promotion\\code\\vaes\\data\\3GPP_mimo\\' + ant + '\\'
 data = 2  # 1=Quadriga, 2=3GPP
 paths = '3'  # for 3GPP data
-losmixed = 'mixed'
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
 snr_lim = [-10, 30]
-snr_step = 10
+snr_step = 20
 
 
 # load training data
