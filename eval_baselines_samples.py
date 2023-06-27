@@ -18,7 +18,7 @@ ant = '128rx'  # 32rx or 128rx
 data = 1  # 1=Quadriga, 2=3GPP
 paths = '3'  # for 3GPP data, represents number of propagation clusters
 losmixed = 'mixed'  # use 'los' (LOS channels) or 'mixed' (mixed LOS/NLOS channels) if data==1 (Quadriga)
-mu_first = 1  # use latent mean vector as first MC sample
+mu_first = 0 # use latent mean vector as first MC sample, if set to 1 the dotted lines from Fig.  is reproduced
 path = './models/'
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
@@ -172,7 +172,7 @@ ax.plot(samples_ar, rel_mse_real, 'p-g', label='VAE-real')
 ax.legend()
 ax.set_xscale('log', base=2)
 ax.set(title='sampling in latent space (SIMO signal model, ' + ant + ', ' + paths + ' cluster)',
-       xlabel='SNR [dB]', ylabel='normalized MSE')
+       xlabel='samples in latent space', ylabel='normalized MSE')
 plt.tight_layout()
 ax.grid(True)
 plt.show()

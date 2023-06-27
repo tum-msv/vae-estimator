@@ -26,3 +26,11 @@
 /data/3GPP/32rx/scm3gpp_3-path-train.npy
 /data/3GPP/128rx/scm3gpp_3-path-train.npy
 /data/3GPP_mimo/32rx4tx/scm3gpp_3-path-train.npy
+/data/3GPP_mimo/32rx4tx/scm3gpp_1-path-cov-bs-test.npy
+/data/3GPP_mimo/32rx4tx/scm3gpp_1-path-cov-ms-test.npy
+/data/3GPP/32rx/scm3gpp_1-path-cov-test.npy
+/data/3GPP/128rx/scm3gpp_1-path-cov-test.npy
+/data/3GPP_mimo/32rx4tx/scm3gpp_3-path-cov-bs-test.npy
+/data/3GPP_mimo/32rx4tx/scm3gpp_3-path-cov-ms-test.npy
+/data/3GPP/32rx/scm3gpp_3-path-cov-test.npy
+/data/3GPP/128rx/scm3gpp_3-path-cov-test.npy
