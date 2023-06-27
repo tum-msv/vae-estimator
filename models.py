@@ -4,7 +4,6 @@ from utils import dft_matrix
 import numpy as np
 from torch import nn
 from numpy import floor
-from scipy.stats import qmc
 from abc import abstractmethod
 from typing import List, Any, TypeVar
 

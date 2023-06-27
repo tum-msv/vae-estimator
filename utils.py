@@ -2,7 +2,6 @@ import numpy as np
 import torch
 from typing import TypeVar
 
-torch.multiprocessing.set_sharing_strategy('file_system')
 Tensor = TypeVar('Tensor')
 ndarray = TypeVar('ndarray')
 
