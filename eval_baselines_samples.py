@@ -12,10 +12,10 @@ from models import VAECircCovReal as VAECircCovNoisy
 
 # set simulation parameters
 parser = argparse.ArgumentParser()
-snr = 20  # SNR for the simulation, choose anything between -10 and 30 dB
-samples_max = 4  # power of 2 samples to consider at max.
-ant = '128rx'  # 32rx or 128rx
-data = 1  # 1=Quadriga, 2=3GPP
+snr = 10  # SNR for the simulation, choose anything between -10 and 30 dB
+samples_max = 3  # power of 2 samples to consider at max.
+ant = '128rx'  # 32rx or 128rx (MIMO not included)
+data = 2  # 1=Quadriga, 2=3GPP
 paths = '3'  # for 3GPP data, represents number of propagation clusters
 losmixed = 'mixed'  # use 'los' (LOS channels) or 'mixed' (mixed LOS/NLOS channels) if data==1 (Quadriga)
 mu_first = 0 # use latent mean vector as first MC sample, if set to 1 the dotted lines from Fig.  is reproduced
@@ -119,37 +119,37 @@ samples_ar = 2 ** np.arange(0, samples_max + 1)
 h_true = data_test.data_raw.reshape((len(data_test), -1), order='F')
 h_tensor = torch.tensor(data_test.data, device=device).to(torch.float).to(device)
 with torch.no_grad():
-    for samples in samples_ar:
-        print('Simulating VAE estimators with %d samples.\n' % samples)
+    for n_samples in samples_ar:
+        print('Simulating VAE estimators with %d samples.\n' % n_samples)
 
         # calculate channel estimates with VAE-genie
         y_tensor = torch.tensor(y, device=device).to(torch.cfloat)
         sigma_tensor = torch.tensor(sigma, device=device).to(torch.cfloat)
-        mu_genie, C_h_genie, like_genie = vae_genie.sample_estimator(samples, h_tensor, False, mu_first)
+        mu_genie, C_h_genie = vae_genie.sample_estimator(n_samples, h_tensor, False, mu_first)
         h_genie = np.zeros_like(h_true, dtype=complex)
-        for i in range(samples):
+        for i in range(n_samples):
             h_est = compute_lmmse(C_h_genie[i], mu_genie[i], y_tensor, sigma_tensor, None, None, device)
-            h_genie += (like_genie[i, :].unsqueeze(-1) * h_est).cpu().numpy()
+            h_genie += (h_est / n_samples).cpu().numpy()
         rel_mse_genie.append(np.mean(rel_mse_np(h_true, h_genie)))
         del C_h_genie
 
         # calculate channel estimates with VAE-noisy
         y_tensor_in = torch.tensor(data_test.y, device=device).view(len(y), 1, -1).to(torch.cfloat)
         y_tensor_in = torch.cat([y_tensor_in.real, y_tensor_in.imag], dim=1).to(device)
-        mu_noisy, C_h_noisy, like_noisy = vae_noisy.sample_estimator(samples, y_tensor_in, True, mu_first)
+        mu_noisy, C_h_noisy = vae_noisy.sample_estimator(n_samples, y_tensor_in, True, mu_first)
         h_noisy = np.zeros_like(h_true, dtype=complex)
-        for i in range(samples):
+        for i in range(n_samples):
             h_est = compute_lmmse(C_h_noisy[i], mu_noisy[i], y_tensor, sigma_tensor, None, None, device)
-            h_noisy += (like_noisy[i, :].unsqueeze(-1) * h_est).cpu().numpy()
+            h_noisy += (h_est / n_samples).cpu().numpy()
         rel_mse_noisy.append(np.mean(rel_mse_np(h_true, h_noisy)))
         del C_h_noisy
 
         # calculate channel estimates with VAE-real
-        mu_real, C_h_real, like_real = vae_real.sample_estimator(samples, y_tensor_in, sigma_tensor, True, mu_first)
+        mu_real, C_h_real = vae_real.sample_estimator(n_samples, y_tensor_in, sigma_tensor, True, mu_first)
         h_real = np.zeros_like(h_true, dtype=complex)
-        for i in range(samples):
+        for i in range(n_samples):
             h_est = compute_lmmse(C_h_real[i], mu_real[i], y_tensor, sigma_tensor, None, None, device)
-            h_real += (like_real[i, :].unsqueeze(-1) * h_est).cpu().numpy()
+            h_real += (h_est / n_samples).cpu().numpy()
         rel_mse_real.append(np.mean(rel_mse_np(h_true, h_real)))
         del C_h_real
 

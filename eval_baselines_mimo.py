@@ -22,7 +22,7 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 snr_lim = [-10, 30]  # upper and lower SNR bound, models are trained for the SNR range [-10, 30] dB
-snr_step = 20  # step for the SNR range
+snr_step = 5  # step for the SNR range
 
 
 # load training data
@@ -140,13 +140,13 @@ with torch.no_grad():
 
         # calculate channel estimates with VAE-noisy
         Y_tensor = torch.tensor(data_test.Y, device=device).to(torch.cfloat)
-        args_vae_noisy = vae_noisy(H_tensor, cond=Y_tensor, train=False)
+        args_vae_noisy = vae_noisy(None, cond=Y_tensor, train=False)
         mu_noisy, C_h_noisy = args_vae_noisy[-2], args_vae_noisy[-1]
         h_noisy = compute_lmmse(C_h_noisy, mu_noisy, y_tensor, sigma_tensor, None, A_tensor, device).numpy()
         rel_mse_noisy.append(np.mean(rel_mse_np(h_true, h_noisy)))
 
         # calculate channel estimates with VAE-real
-        args_vae_real = vae_real(H_tensor, cond=Y_tensor, sigma=sigma_tensor, train=False)
+        args_vae_real = vae_real(None, cond=Y_tensor, sigma=sigma_tensor, train=False)
         mu_real, C_h_real = args_vae_real[-2], args_vae_real[-1][0]
         h_real = compute_lmmse(C_h_real, mu_real, y_tensor, sigma_tensor, None, A_tensor, device).numpy()
         rel_mse_real.append(np.mean(rel_mse_np(h_true, h_real)))

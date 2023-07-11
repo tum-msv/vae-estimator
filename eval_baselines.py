@@ -12,10 +12,10 @@ from models import VAECircCovReal as VAECircCovNoisy
 
 
 # set simulation parameters
-ant = '32rx'  # 32rx or 128rx
+ant = '128rx'  # 32rx or 128rx
 path = './models/'  # path to the model files
 data = 2  # 1=Quadriga, 2=3GPP
-paths = '3'  # for 3GPP data, represents number of propagation clusters
+paths = '1'  # for 3GPP data, represents number of propagation clusters
 losmixed = 'mixed'  # use 'los' (LOS channels) or 'mixed' (mixed LOS/NLOS channels) if data==1 (Quadriga)
 seed_train, seed_test = 479439743597, 2843084209824089
 if torch.cuda.is_available():
@@ -23,7 +23,7 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 snr_lim = [-10, 30]  # upper and lower SNR bound, models are trained for the SNR range [-10, 30] dB
-snr_step = 20  # step for the SNR range
+snr_step = 40  # step for the SNR range
 
 
 # load training data
@@ -154,13 +154,13 @@ with torch.no_grad():
         # calculate channel estimates with VAE-noisy
         y_tensor_in = torch.tensor(data_test.y, device=device).view(len(y), 1, -1).to(torch.cfloat)
         y_tensor_in = torch.cat([y_tensor_in.real, y_tensor_in.imag], dim=1).to(device)
-        args_vae_noisy = vae_noisy(h_tensor, cond=y_tensor_in, train=False)
+        args_vae_noisy = vae_noisy(None, cond=y_tensor_in, train=False)
         mu_noisy, C_h_noisy = args_vae_noisy[-2], args_vae_noisy[-1]
         h_noisy = compute_lmmse(C_h_noisy, mu_noisy, y_tensor, sigma_tensor, None, None, device).numpy()
         rel_mse_noisy.append(np.mean(rel_mse_np(h_true, h_noisy)))
 
         # calculate channel estimates with VAE-real
-        args_vae_real = vae_real(h_tensor, cond=y_tensor_in, sigma=sigma_tensor, train=False)
+        args_vae_real = vae_real(None, cond=y_tensor_in, sigma=sigma_tensor, train=False)
         mu_real, C_h_real = args_vae_real[-2], args_vae_real[-1][0]
         h_real = compute_lmmse(C_h_real, mu_real, y_tensor, sigma_tensor, None, None, device).numpy()
         rel_mse_real.append(np.mean(rel_mse_np(h_true, h_real)))

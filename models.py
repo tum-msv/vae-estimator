@@ -203,7 +203,6 @@ class VAECircCov(BaseVAE):
             encoder_input = kwargs['cond']
         else:
             encoder_input = data
-        data = data[:, 0, :] + 1j * data[:, 1, :]
 
         mu_enc, log_std_enc = self.encode(encoder_input)
 
@@ -233,8 +232,8 @@ class VAECircCov(BaseVAE):
 
         kld_loss = kl_div_diag_gauss(mu_enc, log_std_enc)
 
-        loss = rec_loss - kwargs['alpha'] * kld_loss
-        loss_back = rec_loss.mean() - kwargs['alpha'] * torch.maximum(kld_loss.mean(), self.lambda_z)
+        loss = rec_loss - kld_loss
+        loss_back = rec_loss.mean() - torch.maximum(kld_loss.mean(), self.lambda_z)
 
         return {'loss': loss, 'loss_back': loss_back, 'rec_loss': rec_loss, 'KLD': kld_loss}
 
@@ -243,7 +242,7 @@ class VAECircCov(BaseVAE):
         Samples from the encoder distribution and returns the corresponding likelihoods in the latent space
         and the mean and covariance matrix at the decoder.
         :param num_samples: (Int) number of samples to draw
-        :param obs: (Tensor) input data (observations or channels)
+        :param obs: (Tensor) input data (noisy pilot observations or channels)
         :param is_cond: (Bool) specifies if obs is y, if not it is h
         :param mu_first: (Int) use mean value as first sample in MC sampling
         :return: (Tuple)
@@ -252,25 +251,18 @@ class VAECircCov(BaseVAE):
             cond = obs
         else:
             cond = None
-        mu_list, C_list, loglike_list, z_list = [], [], [], []
+        mu_list, C_list = [], []
         for i in range(num_samples):
             if mu_first and (i == 0):
-                args = self.forward(obs, cond=cond, train=False)
+                args = self.forward(obs, cond=cond, train=False)  # select select latent mean vector
             else:
-                args = self.forward(obs, cond=cond, train=True)
-            mu_enc, log_std_enc = args[3], args[4]
-            mu, log_prec, z = args[0], args[2], args[-4]
-            z_list.append(z)
-            c_diag = torch.diag_embed(torch.exp(-log_prec)).type(torch.complex64).to(self.device)
+                args = self.forward(obs, cond=cond, train=True)  # select random latent samples
+            # save decoder mean vector and covariance matrix in list
+            mu, log_prec = args[0], args[2]
+            c_diag = torch.diag_embed(torch.exp(-log_prec)).type(torch.cfloat).to(self.device)
             C_list.append(self.F.H @ c_diag @ self.F)
             mu_list.append(mu @ self.F.conj())
-            log_var = torch.exp(log_std_enc)
-            loglike_list.append(torch.sum(-log_var - torch.abs(z - mu_enc) ** 2 / log_var.exp()
-                                          - torch.log(self.pi), dim=1).exp())
-        log_like = torch.cat(loglike_list).view(-1, len(z))
-        log_like /= torch.sum(log_like, 0, keepdim=True)
-        log_like = torch.ones_like(log_like, device=self.device) / log_like.shape[0]
-        return mu_list, C_list, log_like
+        return mu_list, C_list
 
 
 class VAECircCovReal(BaseVAE):
@@ -394,7 +386,6 @@ class VAECircCovReal(BaseVAE):
 
     def forward(self, data: Tensor, **kwargs) -> List[Tensor]:
         encoder_input = kwargs['cond']
-        data = data[:, 0, :] + 1j * data[:, 1, :]
         cond = kwargs['cond'][:, 0, :] + 1j * kwargs['cond'][:, 1, :]
 
         mu_enc, log_std_enc = self.encode(encoder_input)
@@ -434,45 +425,33 @@ class VAECircCovReal(BaseVAE):
 
         kld_loss = kl_div_diag_gauss(mu_enc, log_std_enc)
 
-        loss = rec_loss - kwargs['alpha'] * kld_loss
-        loss_back = rec_loss.mean() - kwargs['alpha'] * torch.maximum(kld_loss.mean(), self.lambda_z)
+        loss = rec_loss - kld_loss
+        loss_back = rec_loss.mean() - torch.maximum(kld_loss.mean(), self.lambda_z)
 
         return {'loss': loss, 'loss_back': loss_back, 'rec_loss': rec_loss, 'KLD': kld_loss}
 
-    def sample_estimator(self, num_samples, obs, sigma, is_cond, mu_first):
+    def sample_estimator(self, num_samples, cond, sigma, is_cond, mu_first):
         """
         Samples from the encoder distribution and returns the corresponding likelihoods in the latent space
         and the mean and covariance matrix at the decoder.
         :param num_samples: (Int) number of samples to draw
-        :param obs: (Tensor) input data (observations or channels)
+        :param cond: (Tensor) input data (noisy pilot observations)
         :param is_cond: (Bool) specifies if obs is y, if not it is h
         :param mu_first: (Int) use mean value as first sample in MC sampling
         :return: (Tuple)
         """
-        if is_cond:
-            cond = obs
-        else:
-            cond = None
-        mu_list, C_list, loglike_list, z_list = [], [], [], []
+        mu_list, C_list = [], []
         for i in range(num_samples):
             if mu_first and (i == 0):
-                args = self.forward(obs, cond=cond, sigma=sigma, train=False)
+                args = self.forward(None, cond=cond, sigma=sigma, train=False)  # select select latent mean vector
             else:
-                args = self.forward(obs, cond=cond, sigma=sigma, train=True)
-            mu_enc, log_std_enc = args[4], args[5]
-            mu, log_var, z = args[0], args[3], args[-4]
-            z_list.append(z)
-            c_diag = torch.diag_embed(torch.exp(log_var)).type(torch.complex64).to(self.device)
+                args = self.forward(None, cond=cond, sigma=sigma, train=True)  # select random latent samples
+            # save decoder mean vector and covariance matrix in list
+            mu, log_var = args[0], args[3]
+            c_diag = torch.diag_embed(torch.exp(log_var)).type(torch.cfloat).to(self.device)
             C_list.append(self.F.H @ c_diag @ self.F)
             mu_list.append(mu @ self.F.conj())
-            log_var_enc = torch.exp(log_std_enc)
-            loglike_list.append(
-                torch.sum(-log_var_enc - torch.abs(z - mu_enc) ** 2 / log_var_enc.exp() - torch.log(self.pi),
-                          dim=1).exp())
-        log_like = torch.cat(loglike_list).view(-1, len(z))
-        log_like /= torch.sum(log_like, 0, keepdim=True)
-        log_like = torch.ones_like(log_like, device=self.device) / log_like.shape[0]
-        return mu_list, C_list, log_like
+        return mu_list, C_list
 
 
 class VAECircCovMIMO(BaseVAE):
@@ -604,13 +583,14 @@ class VAECircCovMIMO(BaseVAE):
 
         if self.cond_as_input:
             enc_in_raw = (kwargs['cond'] @ self.X_inv)
+            data_trans = None
         else:
             enc_in_raw = data
+            data_trans = data.transpose(-1, -2).flatten(1) @ self.Q.T
 
         # transform input with modal matrix
-        data_trans = data.transpose(-1, -2).flatten(1) @ self.Q.T
         enc_in_trans = enc_in_raw.transpose(-1, -2).flatten(1) @ self.Q.T
-        enc_in = enc_in_trans.view((-1, 1, data.shape[-1], data.shape[-2])).transpose(-1, -2)
+        enc_in = enc_in_trans.view((-1, 1, self.input_size[-1], self.input_size[-2])).transpose(-1, -2)
 
         enc_in = torch.cat([enc_in.real, enc_in.imag], dim=1)
 
@@ -642,8 +622,8 @@ class VAECircCovMIMO(BaseVAE):
 
         kld_loss = kl_div_diag_gauss(mu_enc, log_std_enc)
 
-        loss = rec_loss - kwargs['alpha'] * kld_loss
-        loss_back = rec_loss.mean() - kwargs['alpha'] * torch.maximum(kld_loss.mean(), self.lambda_z)
+        loss = rec_loss - kld_loss
+        loss_back = rec_loss.mean() - torch.maximum(kld_loss.mean(), self.lambda_z)
 
         return {'loss': loss, 'loss_back': loss_back, 'rec_loss': rec_loss, 'KLD': kld_loss}
 
@@ -782,7 +762,7 @@ class VAECircCovMIMOReal(BaseVAE):
         # transform input with modal matrix
         cond_decor_trans = cond_decor.transpose(-1, -2).flatten(1) @ self.Q.T
         enc_in = torch.clone(cond_decor_trans)
-        enc_in = enc_in.view((-1, 1, data.shape[-1], data.shape[-2])).transpose(-1, -2)
+        enc_in = enc_in.view((-1, 1, self.input_size[-1], self.input_size[-2])).transpose(-1, -2)
 
         enc_in = torch.cat([enc_in.real, enc_in.imag], dim=1)
 
@@ -820,8 +800,8 @@ class VAECircCovMIMOReal(BaseVAE):
 
         kld_loss = kl_div_diag_gauss(mu_enc, log_std_enc)
 
-        loss = rec_loss - kwargs['alpha'] * kld_loss
-        loss_back = rec_loss.mean() - kwargs['alpha'] * torch.maximum(kld_loss.mean(), self.lambda_z)
+        loss = rec_loss - kld_loss
+        loss_back = rec_loss.mean() - torch.maximum(kld_loss.mean(), self.lambda_z)
 
         return {'loss': loss, 'loss_back': loss_back, 'rec_loss': rec_loss, 'KLD': kld_loss}
 
