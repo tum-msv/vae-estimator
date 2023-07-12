@@ -1,4 +1,4 @@
-# Leveraging Variational Autoencoders for Parameterized MMSE Channel
+# Leveraging Variational Autoencoders for Parameterized MMSE Channel Estimation
 
 This is the simulation code for the article:
 
