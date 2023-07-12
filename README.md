@@ -1,4 +1,4 @@
-# MMSE Channel Estimation Leveraging Generative Modeling
+# Leveraging Variational Autoencoders for Parameterized MMSE Channel
 
 This is the simulation code for the article:
 
