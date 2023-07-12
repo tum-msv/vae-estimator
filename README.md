@@ -2,10 +2,10 @@
 
 This is the simulation code for the article:
 
-M. Baur, B. Fesl, and W. Utschick, "MMSE Channel Estimation Leveraging Generative Modeling," arXiv preprint.
+M. Baur, B. Fesl, and W. Utschick, "Leveraging Variational Autoencoders for Parameterized MMSE Channel Estimation," *arXiv preprint arXiv:2307.05352,* 2023.
 
 ## Abstract
-...
+In this manuscript, we propose to utilize the generative neural network-based variational autoencoder for channel estimation. The variational autoencoder models the underlying true but unknown channel distribution as a conditional Gaussian distribution in a novel way. The derived channel estimator exploits the internal structure of the variational autoencoder to parameterize an approximation of the mean squared error optimal estimator resulting from the conditional Gaussian channel models. We provide a rigorous analysis under which conditions a variational autoencoder-based estimator is mean squared error optimal. We then present considerations that make the variational autoencoder-based estimator practical and propose three different estimator variants that differ in their access to channel knowledge during the training and evaluation phase. In particular, the proposed estimator variant trained solely on noisy pilot observations is particularly noteworthy as it does not require access to noise-free, ground-truth channel data during training or evaluation. Extensive numerical simulations first analyze the internal behavior of the variational autoencoder-based estimators and then demonstrate excellent channel estimation performance compared to related classical and machine learning-based state-of-the-art channel estimators. 
 
 ## File Organization
 Please download the data under this [link](https://syncandshare.lrz.de/getlink/fiRHpKeiMJ5hGTHPu8XuEF/data). The password is `VAE-est-2023!`. Afterward, place the `data` folder in the same directory as the `datasets` and `models` folders.
