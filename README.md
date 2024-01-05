@@ -9,10 +9,14 @@ In this manuscript, we propose to utilize the generative neural network-based va
 
 ## File Organization
 Please download the data under this [link](https://syncandshare.lrz.de/getlink/fiRHpKeiMJ5hGTHPu8XuEF/data). The password is `VAE-est-2023!`. Afterward, place the `data` folder in the same directory as the `datasets` and `models` folders.
-The executable files for reproducing the paper results are `eval_baselines.py`, `eval_baselines_mimo.py`, and `eval_baselines_samples.py`. The remaining files contain auxiliary functions and classes. The folder `models` contains the pre-trained model weights with corresponding config files.
+The scripts for reproducing the paper results are `eval_baselines.py`, `eval_baselines_mimo.py`, and `eval_baselines_samples.py`. The remaining files contain auxiliary functions and classes. The folder `models` contains the pre-trained model weights with corresponding config files.
 
 ## Implementation Notes
 This code is written in _Python_ version 3.8. It uses the deep learning library _PyTorch_ and the _numpy_, _scipy_, _matplotlib_, and _json_ packages. The code was tested with the versions visible in the requirements file.
+```
+conda create -n VAEUD python=3.8 numpy=1.23.5 matplotlib=3.6.2 scipy=1.10.0  simplejson  
+conda install pytorch cpuonly -c pytorch
+```
 
 ## Instructions
 Run `eval_baselines.py` to reproduce the SIMO results from the paper. To this end, adapt the simulation parameters at the beginning of the file to select the desired scenario. Models are only available for the scenarios from the paper. Other scenario parameters will result in an error message.
