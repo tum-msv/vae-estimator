@@ -16,7 +16,8 @@ This code is written in _Python_ version 3.8. It uses the deep learning library 
 
 Alternatively, a conda environment that meets the requirements can be created by executing the following lines of code:
 ```
-conda create -n vae_est python=3.8 numpy=1.23.5 matplotlib=3.6.2 scipy=1.10.0 simplejson  
+conda create -n vae_est python=3.8 numpy=1.23.5 matplotlib=3.6.2 scipy=1.10.0 simplejson
+conda activate vae_est  
 conda install pytorch cpuonly -c pytorch
 ```
 
