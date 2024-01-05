@@ -13,6 +13,7 @@ The scripts for reproducing the paper results are `eval_baselines.py`, `eval_bas
 
 ## Implementation Notes
 This code is written in _Python_ version 3.8. It uses the deep learning library _PyTorch_ and the _numpy_, _scipy_, _matplotlib_, and _json_ packages. The code was tested with the versions visible in the requirements file.
+Alternatively, a conda environment that meets the requirements can be created by executing the following lines of code:
 ```
 conda create -n vae_est python=3.8 numpy=1.23.5 matplotlib=3.6.2 scipy=1.10.0 simplejson  
 conda install pytorch cpuonly -c pytorch
