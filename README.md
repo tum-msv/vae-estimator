@@ -1,6 +1,6 @@
 # Leveraging Variational Autoencoders for Parameterized MMSE Estimation
 
-This is the simulation code for the article:
+This is the simulation code for the [article](https://ieeexplore.ieee.org/abstract/document/10629241):
 
 M. Baur, B. Fesl, and W. Utschick, "Leveraging Variational Autoencoders for Parameterized MMSE Estimation," *IEEE Transactions on Signal Processing,* vol. 72, pp. 3731-3744, 2024, doi: 10.1109/TSP.2024.3439097.
 
